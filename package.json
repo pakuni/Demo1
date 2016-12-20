@@ -1,24 +1,45 @@
 {
-  "name": "learn-mocha",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nelsonic/learn-mocha.git"
-  },
-  "description": "Simple mocha.js tutorial including istanbul test coverage",
-  "version": "1.0.0",
-  "devDependencies": {
-    "mocha": "^2.2.5",
-    "istanbul":"^0.3.17",
-    "codeclimate-test-reporter": "^0.0.4"
+  "name": "jscoverage",
+  "version": "0.5.9",
+  "description": "a javascript coverage tool, can be used in node dev, and browser side js dev",
+  "main": "index.js",
+  "bin": {
+    "jscoverage": "./bin/jscoverage"
   },
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha",
-    "coverage":"istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec",
-    "codeclimate": "CODECLIMATE_REPO_TOKEN=8138682931f34a05f1829d6c49d791a097e820489d6f98d3d0c0d829c5612585 ./node_modules/codeclimate-test-reporter/bin/codeclimate.js < ./coverage/lcov.info"
+    "test": "./node_modules/mocha/bin/_mocha -t 60000 -r ./index.js -R spec --covinject true test/"
   },
-  "author": "nelsonic <nodecoder@gmail.com> (https://github.com/nelsonic)",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/docids/learn-mocha/issues"
-  }
+  "engines": {
+    "node" : ">=0.8"
+  },
+  "dependencies" : {
+    "uglify-js" : "2.4.15",
+    "optimist" : "0.3.1",
+    "xfs" : "0.1.8",
+    "ejs": "1.0.0",
+    "debug": "1.0.3",
+    "coffee-script": "*"
+  },
+  "devDependencies" : {
+    "mocha" : "*",
+    "expect.js" : "*",
+    "xfs" : "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fishbar/jscoverage.git"
+  },
+  "keywords": [
+    "jscoverage",
+    "node",
+    "javascript",
+    "coverage",
+    "dev",
+    "tool"
+  ],
+  "author": "fish <zhengxinlin@gmail.com>, kate.sf <kate.sf@taobao.com>",
+  "contributors":[
+    { "name": "christineRR", "email": "rongkunli1215@gmail.com" }
+  ],
+  "license": "MIT"
 }
