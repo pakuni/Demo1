@@ -1,240 +1,488 @@
-## What is Travis CI?
+Learn Mocha [![Build Status](https://travis-ci.org/docdis/learn-mocha.png?branch=master)](https://travis-ci.org/docdis/learn-mocha) [![Test Coverage](https://codeclimate.com/github/docdis/learn-mocha/badges/coverage.svg)](https://codeclimate.com/github/docdis/learn-mocha/coverage) [![Code Climate](https://codeclimate.com/github/docdis/learn-mocha.png)](https://codeclimate.com/github/docdis/learn-mocha) [![devDependency Status](https://david-dm.org/docdis/learn-mocha/dev-status.svg)](https://david-dm.org/docdis/learn-mocha#info=devDependencies)
+===========
 
-[Travis CI](https://travis-ci.org/) is a hosted [continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) platform that is free for all open source projects hosted on Github.
+*Quick Guide* to **mocha.js** Test Driven Development (TDD) in **node.js**
 
-With a file called `.travis.yml`, you can trigger automated builds with every change to your repo.
+> **Note**: This tutorial is an intro to Testing with Mocha. If you are looking for a more _detailed_ **T**est **D**riven **D**evelopment (**TDD**) Tutorial see: [https://github.com/nelsonic/**learn-tdd**](https://github.com/nelsonic/learn-tdd)
 
-## How to use Travis CI?
+![Cowboy Coder](http://i.imgur.com/N0VqWcL.png "Cowboy Coder")
 
-1. Sign in to [Travis CI](https://travis-ci.org/auth) with your GitHub account.
+We all know *Cowboy Coders*. (*If you don't, its you!*)
 
-1. Go to your [profile page](https://travis-ci.org/profile) and choose a repository to run Travis CI builds.
+The "*I just get things done*" developer who writes "*quick fixes*" and
+maintains "*I don't have time to write tests*" or
+"*Writing tests for my code takes longer*" and then acts *surprised* when
+everything starts breaking ... "*it was working this morning*" ...
 
-1. Put a file called `.travis.yml`, which tells Travis CI what to do, in the root of your repository.
+- - -
 
-1. Edit the empty `NewUser.txt` file by adding your name to the empty file. Add the file to git, commit and push, to trigger a Travis CI build.
 
-```bash
-$ git add -A
-$ git commit -m 'Testing Travis CI'
-$ git push
+## Installation
+
+```sh
+npm install mocha -g --save-dev
 ```
 
-1. Wait for Travis CI to run a build on your repository, check the [build status](https://travis-ci.org/repositories) and notice that the build fails. (Travis CI sends you an email when this happens)
+You should see some output *confirming* it *installed*:
 
-## .travis.yml
+![Mocha Installed](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-installed.png "Mocha Installed Successfully")
 
-your .travis.yml file may tell Travis CI:
+More info: http://mochajs.org/#installation
 
-- What programming language your project uses
-- What commands or scripts you want to be executed before each build (for example, to install or clone your project’s dependencies)
-- What command is used to run your test suite
-- Emails, Campfire and IRC rooms to notify about build failures
+> **Tip**: _avoid_ installing node.js modules using `sudo`  
+> see: http://stackoverflow.com/questions/16151018/npm-throws-error-without-sudo
 
-You can use [lint.travis-ci.org](http://lint.travis-ci.org/) to verify this file.
+### First Tests
 
-Note that for historical reasons `.travis.yml` needs to be present on all active branches of your project.
+#### Create Test Directory
 
-### Specifying Runtime Versions
+In your project create a new **/test** directory to hold your tests:
 
-One of the key features of Travis CI is the ease of running your test suite against multiple runtimes and versions. Specify what languages and runtimes to run your test suite against in the `.travis.yml` file.
-
-A [list](http://docs.travis-ci.com/user/customizing-the-build/#Specifying-Runtime-Versions) of languages and runtimes Travis CI supports.
-
-```yaml
-language: node_js
-node_js:
-  - "4.1"
+```sh
+mkdir test
 ```
 
-The above `.travis.yml` tells Travis CI that this project is written in Node v4.1 .
+#### Create test.js File
 
-### The Lifecycle
+Now create a new file ./test/**test.js** in your text editor
 
-A build on Travis CI is made up of two steps:
+and write/paste the following code:
 
-- install: install any dependencies required
-- script: run the build script
+```js
+var assert = require("assert"); // node.js core module
 
-You can run custom commands before the installation step (`before_install`), and before (`before_script`) or after (`after_script`) the script step.
-
-You can perform additional steps when your build succeeds or fails using the `after_success` (such as building documentation, or deploying to a custom server) or `after_failure` (such as uploading log files) options. In both `after_failure` and `after_success`, you can access the build result using the `$TRAVIS_TEST_RESULT` environment variable.
-
-The complete build lifecycle is:
-
-1. `before_install`
-1. `install`
-1. `before_script`
-1. `script`
-1. `after_success` or `after_failure`
-1. `after_script`
-1. OPTIONAL `before_deploy`
-1. OPTIONAL `deploy`
-1. OPTIONAL `after_deploy`
-
-### Customizing the Installation Step
-
-Travis CI uses the default dependency installation commands depend on the project language to install the dependencies. For Node projects, the default dependency installation commands is `npm install`.
-
-```yaml
-install:
-  - npm install
+describe('Array', function(){
+  describe('#indexOf()', function(){
+    it('should return -1 when the value is not present', function(){
+      assert.equal(-1, [1,2,3].indexOf(4)); // 4 is not present in this array so indexOf returns -1
+    })
+  })
+});
 ```
 
-You can specify your own script to run to install whatever dependencies your project requires in `.travis.yml`.
+#### Run Test
 
-```yaml
-install: ./install-dependencies.sh
+By typing the command **mocha** in your terminal the mocha comand line program
+will look for a **/test** directory and run any **.js** files it contains:
+
+```sh
+mocha
 ```
 
-When one of the steps fails, the build stops immediately and is marked as errored.
+![Mocha 1 Test Passes](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-1-test-passing.png "Mocha 1 Test Passes")
 
-You can skip the installation step entirely by adding the following to your `.travis.yml`.
+### A More Useful TDD Example (Cash Register Mini Project)
 
-```yaml
-install: true
+While I'm the first to agree that *cash-less* payments are the future,
+paying with cash is something *everyone* can relate to and is therefore
+a good example to use. (*think of better TDD example*? *tell me*!)
+
+
+#### Basic Requirements
+
+> Given a **Total Payable** and **Cash From Customer**
+> Return: **Change To Customer** (notes and coins).
+
+Essentially we are building a *simple* **calculator** that *only does* **subtraction**
+(Total - Cash = Change), but also splits the **result** into the various **notes & coins**.
+
+In the UK we have the following Notes & Coins:
+
+![GBP Notes](https://raw.github.com/nelsonic/learn-mocha/master/images/gbp-notes.jpg "GBP Notes")
+![GBP Coins](https://raw.github.com/nelsonic/learn-mocha/master/images/gbp-coins.jpg "GBP Coins")
+
+see: http://en.wikipedia.org/wiki/Banknotes_of_the_pound_sterling
+(technically there are also £100 and even £100,000,000 notes,
+but these aren't common so we can leave them out. ;-)
+
+If we use the penny as the unit (i.e. 100 pennies in a pound)
+the notes and coins can be represented as:
+
+- 5000 (£50)
+- 2000 (£20)
+- 1000 (£10)
+-  500 (£5)
+-  200 (£2)
+-  100 (£1)
+-   50 (50p)
+-   20 (20p)
+-   10 (10p)
+-    5 (5p)
+-    2 (2p)
+-    1 (1p)
+
+this can be represented as an Array:
+
+```javascript
+var coins = [5000, 2000, 1000, 500, 200, 100, 50, 20, 10, 5, 2, 1]
 ```
 
-### Customizing the Build Step
+**Note**: the same can be done for any other cash system ($ ¥ €)
+simply use the cent, sen or rin as the unit and scale up notes.
 
-The default build command depends on the project language. You can overwrite the default build step in .travis.yml:
+#### The First Test
 
-```yaml
-script:
-  - bundle exec rake build
-  - bundle exec rake builddoc
+If you are *totally* new to TDD I recommend reading this
+[intro article](http://www.agiledata.org/essays/tdd.html) by Scott Ambler
+(especially the diagrams) otherwise this (test-fail-code-pass) process
+may seem *strange* ...
+
+In **T**est **F**irst **D**evelopment (TFD) we write a test *first* and *then*
+write the code that makes the test pass.
+
+so, back in our ./test/**test.js** file add the following line:
+
+```javascript
+var C = require('../cash.js');  // our module
 ```
 
-When one of the build commands returns a non-zero exit code, the Travis CI build runs the subsequent commands as well, and accumulates the build result.
+#### Watch it Fail
 
-If your first step is to run unit tests, followed by integration tests, you may still want to see if the integration tests succeed when the unit tests fail.
+Back in your terminal window, re-run the **mocha** command and watch it *fail*:
 
-You can change this behavior.
-
-```yaml
-script: bundle exec rake build && bundle exec rake builddoc
+```sh
+mocha
 ```
 
-This example (note the `&&`) fails immediately when `bundle exec rake build` fails.
+![Mocha TFD Fail](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-tfd-cannot-find-module-first-fail.png "Mocha TFD Fail")
 
-If any of the commands in the first four stages of the build lifecycle return a non-zero exit code, the build is broken:
+This error ("**Cannot find module '../cash.js'**") is pretty self explanatory.
+We haven't created the file yet so test.js is requesting a non-existent file!
 
-- If `before_install`, `install` or `before_script` return a non-zero exit code, the build is errored and stops immediately.
-- If `script` returns a non-zero exit code, the build is failed, but continues to run before being marked as failed.
+> **Q**: Why *deliberately* write a test we *know* is going to *fail*...? <br />
+> **A**: To get used to the idea of *only* writing the code required to *pass*
+>    the *current* (*failing*) *test*.
 
-The `after_success`, `after_failure`, `after_script` and subsequent stages do not affect the the build result.
 
-### Build Timeouts
+#### Create the Module File
 
-Because it is very common for test suites or build scripts to hang, Travis CI has specific time limits for each job. If a script or test suite takes longer than 50 minutes (or 120 minutes on travis-ci.com), or if there is not log output for 10 minutes, it is terminated, and a message is written to the build log.
+Create a new file for our cash register **cash.js**:
 
-There is no timeout for a build; a build will run as long as all the jobs do as long as each job does not timeout.
-
-### Building Specific Branches
-
-Travis CI uses the `.travis.yml` file from the branch specified by the git commit that triggers the build.
-
-You can tell Travis to build multiple branches using blacklists or whitelists. Specify which branches to build using a whitelist, or blacklist branches that you do not want to be built:
-
-```yaml
-# blacklist
-branches:
-  except:
-    - legacy
-    - experimental
-
-# whitelist
-branches:
-  only:
-    - master
-    - stable
+```sh
+touch cash.js
 ```
 
-If you specify both, only takes precedence over except. By default, gh-pages branch is not built unless you add it to the whitelist.
+**Note**: We are *not* going to add any code to it just yet.
 
-You can use regular expressions to whitelist or blacklist branches:
+Re-run the **mocha** command in terminal, it will pass (*zero* tests)
 
-```yaml
-branches:
-  only:
-    - master
-    - /^deploy-.*$/
+![Mocha Pass 0 Tests](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-0-passing.png "Mocha Pass 0 Tests")
+
+Lets add a test to ./test/**test.js** and watch it fail again:
+
+```javascript
+var assert = require("assert"); // core module
+var C = require('../cash.js');  // our module
+
+describe('Cash Register', function(){
+  describe('Module C', function(){
+    it('should have a getChange Method', function(){
+      assert.equal(typeof C, 'object');
+      assert.equal(typeof C.getChange, 'function');
+    })
+  })
+});  
+```
+Re-run `mocha`:
+
+![Mocha 1 Test Failing](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-first-test-failing.png "Mocha 1 Test Failing")
+
+#### Write *Just* Enough Code to Make the Test Pass
+
+Add the following to **cash.js**:
+
+```javascript
+var C = {};                    // C Object simplifies exporting the module
+C.getChange = function () {    // enough to satisfy the test
+    'use strict';
+    return true;               // also passes JSLint
+};
+module.exports = C;            // export the module with a single method
 ```
 
-If you don’t want to run a build for a particular commit, because all you are changing is the README for example, add `[ci skip]` to the git commit message. Commits that have `[ci skip]` anywhere in the commit messages are ignored by Travis CI.
+Re-run `mocha` (now it passes):
 
-### Deploying your Code
+![Mocha 1 Test Passes](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-1-test-pass.png "Mocha 1 Test Passes")
 
-An optional phase in the build lifecycle is deployment.
 
-When deploying files to a provider, prevent Travis CI from resetting your working directory and deleting all changes made during the build ( `git stash --all`) by adding `skip_cleanup` to your `.travis.yml`:
+#### Write A Real Test
 
-```yaml
-deploy:
-  skip_cleanup: true
+Going back to the requirements, we need our getChange method to accept
+two arguments/parameters (**totalPayable** and **cashPaid**) and return an
+array containing the coins equal to the difference:
+
+e.g:
+```js
+totalPayable = 210         // £2.10
+cashPaid     = 300         // £3.00
+dfference    =  90         // 90p
+change       = [50,20,20]  // 50p, 20p, 20p
 ```
 
-You can run steps before a deploy by using the `before_deploy` phase. A non-zero exit code in this command will mark the build as errored.
+Add the following test to ./test/**test.js**:
 
-If there are any steps you’d like to run after the deployment, you can use the `after_deploy` phase.
-
-## Building Node Project
-
-### Provided Node.js Versions
-
-- 4.1.x (support provided on demand)
-- 4.0.x (support provided on demand)
-- 0.12.x (support provided on demand)
-- 0.11.x
-- 0.10.x (recent stable release)
-- 0.8.x
-- 0.6.x
-- iojs (recent stable release of io.js)
-
-Travis CI uses nvm to specify Node versions. Newer releases not shown above may be used if nvm recognizes them.
-
-```yaml
-language: node_js
-node_js:
-  - "4.1"
-  - "4.0"
-  - "0.12"
-  - "0.11"
-  - "0.10"
-  - "0.8"
-  - "0.6"
-  - "iojs"
+```javascript
+it('getChange(210,300) should equal [50,20,20]', function(){
+    assert.deepEqual(C.getChange(210,300), [50,20,20]);
+})
 ```
 
-This will make Travis CI run your tests against the latest version 0.6.x, 0.8.x, 0.10.x, 0.11.x, 0.12.x, 4.0.x, and 4.1.x branch releases, as well as the latest io.js stable release.
+**Note**: use assert.**deepEqual** for arrays
+see: http://stackoverflow.com/questions/13225274/
 
-Specifying `node` or `stable` will run using the latest stable Node.js release and specifying `iojs` will run using the latest stable io.js release.
+![Mocha Assertion Error](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-assertionError.png "Mocha Assertion Error")
 
-Specifying only a major and minor version (e.g., “0.12”) will run using the latest published patch release for that version. If a specific version is not needed, It is encouraged to specify `node` and/or `iojs` to run using the latest stable releases.
+#### Write the Method to Pass the Test
 
-### Dependency Management
+What if I cheat?
 
-By default, Travis CI will run
-
-```bash
-$ npm install
+```javascript
+C.getChange = function (totalPayable, cashPaid) {
+    'use strict';
+    return [50, 20, 20];    // just enough to pass :-)
+};
 ```
 
-to install your dependencies.
+This will pass:
 
-### Default Test Script
+![Mocha Passing](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-2-passing.png "Mocha 2 Passing")
 
-For projects using npm, Travis CI will execute
+This only works *once*. When the Spec (Test) Writer writes the next test, the method will need
+to be re-written to satisfy it.
 
-```bash
-$ npm test
+Lets try it.  Work out what you expect:
+```
+totalPayable = 486           // £4.86
+cashPaid     = 1000          // £10.00
+dfference    = 514           // £5.14
+change       = [500,10,2,2]  // £5, 10p, 2p, 2p
 ```
 
-to run your test suite.
+Add the following test to ./test/**test.js** and re-run `mocha`:
 
-## Links
+```javascript
+it('getChange(486,1000) should equal [500, 10, 2, 2]', function(){
+    assert.deepEqual(C.getChange(486,1000), [500, 10, 2, 2]);
+})
+```
 
-- [Building a Node.js project](http://docs.travis-ci.com/user/languages/javascript-with-nodejs/), by Travis CI
-- [Customizing the Build](http://docs.travis-ci.com/user/customizing-the-build/), by Travis CI
-- [CI-By-Example](https://github.com/buildfirst/ci-by-example), by bevacqua
-- [Travis-CI: What, Why, How](http://code.tutsplus.com/tutorials/travis-ci-what-why-how--net-34771), by Sayanee Basu
+As expected, our lazy method fails:
+
+![Mocha 3 Test Fails](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-2-passing-1-fail.png "Mocha 3rd Test Fails")
+
+#### Keep Cheating or Solve the Problem?
+
+We could keep cheating by writing a series of if statements:
+
+```javascript
+C.getChange = function (totalPayable, cashPaid) {
+    'use strict';
+    if(totalPayable == 486 && cashPaid == 1000)
+        return [500, 10, 2, 2];
+    else if(totalPayable == 210 && cashPaid == 300)
+        return [50, 20, 20];
+};
+```
+The *Arthur Andersen Approach* gets results:
+
+![Mocha 3 Passing](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-3-passing.png "Mocha 3 Passing")
+
+But its arguably *more work* than simply *solving* the problem.
+Lets do that instead.
+(**Note**: this is the *readable* version of the solution! feel free to suggest a more compact algorithm)
+
+```javascript
+var C = {};     // C Object simplifies exporting the module
+C.coins = [5000, 2000, 1000, 500, 200, 100, 50, 20, 10, 5, 2, 1]
+C.getChange = function (totalPayable, cashPaid) {
+    'use strict';
+    var change = [];
+    var length = C.coins.length;
+    var remaining = cashPaid - totalPayable;          // we reduce this below
+
+    for (var i = 0; i < length; i++) { // loop through array of notes & coins:
+        var coin = C.coins[i];
+
+        if(remaining/coin >= 1) { // check coin fits into the remaining amount
+            var times = Math.floor(remaining/coin);        // no partial coins
+
+            for(var j = 0; j < times; j++) {     // add coin to change x times
+                change.push(coin);
+                remaining = remaining - coin;  // subtract coin from remaining
+            }
+        }
+    }
+    return change;
+};
+```
+
+Add one more test to ensure we are *fully* exercising our method:
+
+```
+totalPayable = 1487                                 // £14.87  (fourteen pounds and eighty-seven pence)
+cashPaid     = 10000                                // £100.00 (one hundred pounds)
+dfference    = 8513                                 // £85.13
+change       = [5000, 2000, 1000, 500, 10, 2, 1 ]   // £50, £20, £10, £5, 10p, 2p, 1p
+```
+
+```javascript
+it('getChange(1487,10000) should equal [5000, 2000, 1000, 500, 10, 2, 1 ]', function(){
+    assert.deepEqual(C.getChange(1487,10000), [5000, 2000, 1000, 500, 10, 2, 1 ]);
+});
+```
+
+![Mocha 4 Passing](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-4-tests-passing.png "Mocha 4 Passing")
+
+
+- - -
+
+### Bonus Level
+
+#### Code Coverage
+
+We are using istanbul for code coverage.
+If you are new to istanbul check out my brief tutorial:
+https://github.com/nelsonic/learn-istanbul
+
+Install istanbul:
+
+```sh
+npm install istanbul -g
+```
+
+Run the following command to get a coverage report:
+```sh
+istanbul cover _mocha -- -R spec
+```
+You should see:
+
+![Istanbul Coverage](https://raw.github.com/nelsonic/learn-mocha/master/images/istanbul-cover-mocha.png "Istanbul Code Coverage")
+
+or if you prefer the **lcov-report**:
+
+![Istanbul Coverage Report](https://raw.github.com/nelsonic/learn-mocha/master/images/istanbul-coverage-report.png "Istanbul Code Coverage Report")
+
+> **100% Coverage** for Statements, Branches, Functions and Lines.
+
+
+#### Travis
+
+If you are new to Travis CI check out my tutorial:
+https://github.com/nelsonic/learn-travis
+
+> Visit: https://travis-ci.org/profile
+> Enable Travis for learn-travis project
+
+![Travis Enabled](https://raw.github.com/nelsonic/learn-mocha/master/images/travis-on.png "Travis Enabled")
+
+Done. [![Travis Build Status](https://travis-ci.org/docdis/learn-mocha.svg)](https://travis-ci.org/docdis/learn-mocha)
+
+- - -
+
+### Background
+
+#### What is Mocha?
+
+Mocha is a **JavaScript test framework** running on **node.js**
+*and* the **browser**.
+
+![Mocha Logo](https://raw.github.com/nelsonic/learn-mocha/master/images/mocha-logo.png "Mocha Logo")
+
+Made by [TJ Holowaychuk](https://twitter.com/tjholowaychuk) creator of
+[Express](https://github.com/visionmedia/express) (*by far* the *most popular*
+node.js web framework), Mocha is TJ's answer to the problem of testing JavaScript.
+
+- Site: http://mochajs.org
+- Code: https://github.com/mochajs/mocha
+
+#### Why Mocha?
+
+At last count there were 83 testing frameworks *listed* on the node.js
+modules page: https://github.com/joyent/node/wiki/modules#wiki-testing
+this is *both* a problem (*too much choice* can be
+*overwhelming*) and good thing (diversity means new ideas and innovative
+solutions can flourish).
+
+There's no hard+fast rule for "*which testing framework is the best one*?"
+
+Over the past 3 years I've tried:
+[Assert (Core Module)](http://nodejs.org/api/assert.html),
+[Cucumber](https://github.com/cucumber/cucumber-js),
+[Expresso](https://github.com/visionmedia/expresso)
+[Jasmine](https://github.com/mhevery/jasmine-node),
+[Mocha](https://github.com/mochajs/mocha),
+[Nodeunit](https://github.com/caolan/nodeunit),
+[Should](https://github.com/visionmedia/should.js), and
+[Vows](https://github.com/cloudhead/vows)
+
+My **criteria** for chosing a testing framework:
+
+- **Simplicity** (one of TJ's *stated aims*)
+- **Elegance** (*especially when written in CoffeeScript*)
+- **Speed** (Mocha is *Fast*. 300+ tests run in under a second)
+- **Documentation** (plenty of real-world examples: http://mochajs.org)
+- **Maturity** (*Battle-tested* by *thousands* of developers!)
+
+Advanced:
+
+- Easy to Trouble-shoot (Plenty of *Answered* Questions on
+[stackoverflow](http://stackoverflow.com/questions/tagged/mocha?sort=frequent&pageSize=15))
+- Automatic Test Running when File Changes (using
+[Watchr](https://github.com/bevry/watchr)/[Grunt](http://gruntjs.com/))
+- Detailed reports of test execution (extensible reports!)
+
+
+### Notes
+
+#### Other Mocha Tutorials/Background
+
+- DailyJS Mocha: http://dailyjs.com/2011/12/08/mocha/
+- Azat's Mocha Tutorial: http://webapplog.com/test-driven-development-in-node-js-with-mocha/
+- NetTuts: http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
+- Grunt.js Mocha Plugins: http://gruntjs.com/plugins/mocha
+- Test Coverage with Mocha: http://stackoverflow.com/questions/16633246/code-coverage-with-mocha
+
+#### Test Driven Development (TDD) Background/Philosophy
+
+- Wikipedia (duh!): http://en.wikipedia.org/wiki/Test-driven_development
+- Excellent Explanation by Scott Ambler: http://www.agiledata.org/essays/tdd.html
+
+
+#### Further Reading
+
+- Testing takes "*twice as long*" (Myth): http://googletesting.blogspot.co.uk/2009/10/cost-of-testing.html
+- Estimating Testing Effort as % of Development Time: http://stackoverflow.com/questions/1595346/estimating-of-testing-effort-as-a-percentage-of-development-time
+- Technical Debt (Bad Code): http://jessewarden.com/2010/07/agile-chronicles-12-technical-debt.html
+- Agile = an excuse for cowboys? Discussion: http://programmers.stackexchange.com/questions/11188/is-the-agile-approach-too-much-of-a-convenient-excuse-for-cowboys
+- TDD Examples: http://stackoverflow.com/questions/1920259/recommend-good-online-sample-walkthrough-of-tdd/7213630#7213630
+
+- - -
+
+#### Trying to think of a good example for TDD ...
+
+- Bowling: http://www.objectmentor.com/resources/articles/xpepisode.htm
+- Sudoku: http://johannesbrodwall.com/2010/04/06/why-tdd-makes-a-lot-of-sense-for-sudoko/
+- Vending machine.
+- Cash Register.
+- Roman Numerals: http://www.diveintopython.net/
+
+
+#### Rant
+
+Code without tests is like a *building without a foundation*!
+
+![Building Collapse](http://i.imgur.com/Iske6zG.jpg "Building Collapse")
+
+Its only a matter of *time* before it all comes crashing down ...
+
+Is Test Driven Development (TDD) a *silver bullet* for *all* my software
+development woes? *Short answer*: **No**.
+There is a *lot* more that goes into writing *great* software than
+*just* having tests. But *without tests* reliability is *impossible*.
+
+If you are *not* doing TDD in your projects I'm probably not going to be
+the one to change your mind by evangelizing about it. I know plenty of
+people calling themesleves "developers" who stubbornly cling to the idea
+that testing is for "QA" or "That's why we have testers" and wish them
+nothing but the best of luck! I just cant't work with you or use your
+"product", no hard feelings. :-)
