@@ -5,6 +5,8 @@
     "test": "jshint hello.js"
   },
   "devDependencies": {
-    "jshint": "^2.8.0"
+    "coveralls": "^2.11.15",
+    "jshint": "^2.8.0",
+    "mocha-lcov-reporter": "^1.2.0"
   }
 }
